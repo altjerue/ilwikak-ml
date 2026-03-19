@@ -26,7 +26,7 @@ Projects are sequential. Each depends on results from the previous one.
 
 ### Scientific Questions
 
-**Primary:** Given multi-wavelength observational features from the 4LAC-DR3 catalog, can a ML model recover the constraints on jet baryon loading (50 ≤ μ ≤ 80) derived from forward simulation in the 2021 paper? Agreement is independent validation of that result. Disagreement is also scientifically informative.
+**Primary:** Given multi-wavelength observational features from the 4LAC-DR3 catalog, can a ML model recover the constraints on jet baryon loading ($50 ≤ \mu ≤ 80$) derived from forward simulation in the 2021 paper? Agreement is independent validation of that result. Disagreement is also scientifically informative.
 
 **Secondary (sets up the primary):** Is there a continuous blazar sequence, or are BL Lacs and FSRQs genuinely distinct populations? Can unsupervised clustering on observables recover known subclasses or reveal intermediate objects (BCU)?
 
@@ -34,9 +34,9 @@ Projects are sequential. Each depends on results from the previous one.
 
 The project runs on two samples with different feature sets. They are not the same analysis at different scales.
 
-**Part 1 — full catalog (3,407 sources):** Catalog-native features only, no kinematics. The small viewing-angle approximation (Doppler boosting selection enforces θ < 1/Γ at the population level) justifies using SED features as implicit kinematic proxies. Methods: PCA, UMAP, GMM, HDBSCAN.
+**Part 1 — full catalog (3,407 sources):** Catalog-native features only, no kinematics. The small viewing-angle approximation (Doppler boosting selection enforces $\theta < 1 / \Gamma$ at the population level) justifies using SED features as implicit kinematic proxies. Methods: PCA, UMAP, GMM, HDBSCAN.
 
-**Part 2 — MOJAVE cross-matched subsample (334 sources):** Adds β_app and Γ_min = √(1 + β_app²) from VLBI monitoring. The viewing angle affects the observed inverse Compton component independently of Γ_bulk (Rueda-Becerril 2014), so both features must enter the model. This subsample is radio-bright and biased toward FSRQs and LSP sources — results are not directly comparable to Part 1 without correcting for MOJAVE selection.
+**Part 2 — MOJAVE cross-matched subsample (334 sources):** Adds $\beta_{\text{app}}$ and $\Gamma_{\text{min}} = \sqrt{1 + \beta_{\text{app}}^2}$ from VLBI monitoring. The viewing angle affects the observed inverse Compton component independently of $\Gamma_{\text{bulk}}$ (Rueda-Becerril 2014), so both features must enter the model. This subsample is radio-bright and biased toward FSRQs and LSP sources — results are not directly comparable to Part 1 without correcting for MOJAVE selection.
 
 ### Features
 
@@ -44,13 +44,13 @@ The project runs on two samples with different feature sets. They are not the sa
 |---------|-----------|-------|
 | `pl_index` | `PL_Index` (native) | Photon spectral index |
 | `lp_alpha`, `lp_beta` | `LP_Index`, `LP_beta` (native) | Log-parabola shape |
-| `log_nu_syn` | $\log_{10}($\nu_{\text{syn}}) | Synchrotron peak frequency; 0-sentinel treated as NaN (777 sources) |
-| `log_nuFnu_syn` | log₁₀(`nuFnu_syn`) | Synchrotron peak flux |
-| `log_compton_dom` | log₁₀(`HE_nuFnuPeak` × 1.602e-6 / `nuFnu_syn`) | MeV cm⁻² s⁻¹ → erg cm⁻² s⁻¹ conversion required |
-| `log_gamma_lum` | log₁₀(4π d_L² × `Energy_Flux100`) | d_L from flat ΛCDM (H₀=70, Ω_m=0.3); redshift=0 treated as NaN |
+| `log_nu_syn` | $\log_{10}$(`nu_syn`) | Synchrotron peak frequency; 0-sentinel treated as NaN (777 sources) |
+| `log_nuFnu_syn` | $\log_{10}$(`nuFnu_syn`) | Synchrotron peak flux |
+| `log_compton_dom` | $\log_{10}$(`HE_nuFnuPeak` × 1.602e-6 / `nuFnu_syn`) | $\text{MeV cm}^{-2}\text{ s}^{-1} \rightarrow \text{erg cm}^{-2}\text{ s}^{-1}$ conversion required |
+| `log_gamma_lum` | $\log_{10}$($4 \pi d_L^2 \times$ `Energy_Flux100`) | $d_L$ from flat $\Lambda\text{CDM}\; (H_{0} = 70, \Omega_m = 0.3)$; `redshift`=0 treated as NaN |
 | `var_index` | `Variability_Index` (native) | |
-| `beta_app` | `betaMax` from MOJAVE-XVII | Part 2 only; 71 sources have betaMax=0 (no detected superluminal motion) |
-| `gamma_min` | √(1 + $\beta_{\text{app}}^2) | Part 2 only; conservative Γ_bulk lower bound |
+| `beta_app` | `betaMax` from MOJAVE-XVII | Part 2 only; 71 sources have `betaMax`=0 (no detected superluminal motion) |
+| `gamma_min` | $\sqrt{1 + \beta_{\text{app}}^2}$ | Part 2 only; conservative Γ_bulk lower bound |
 
 ### Missingness Summary
 
@@ -75,16 +75,16 @@ Classical ML is appropriate here. The dataset is at most a few thousand points. 
 
 ### Data Acquisition
 
-The `data/` folder is not committed to the repository. Download the following files and place them in `Science/data/` before running the notebook.
+The `data/` folder is not committed to the repository. Download the following files and place them in `data/` before running the notebook.
 
-**4LAC-DR3** (Ajello et al. 2022, arXiv:2209.12070):
+**4LAC-DR3** (Ajello et al. 2022, [arXiv:2209.12070](https://arxiv.org/abs/2209.12070)):
 
 Download from the Fermi Science Support Center:
 ```
 https://fermi.gsfc.nasa.gov/ssc/data/access/lat/4LACDR3/
 ```
 Files needed:
-- `table-4LAC-DR3-h.fits` — high Galactic latitude sources, |b| > 10°, 3,407 sources (primary catalog)
+- `table-4LAC-DR3-h.fits` — high Galactic latitude sources, $|b| > 10^{\circ}$, 3,407 sources (primary catalog)
 - `table-4LAC-DR3-l.fits` — low Galactic latitude sources (excluded from main analysis, kept for reference)
 
 Alternatively, the VizieR mirror (catalog J/ApJS/263/24) provides the same tables:
@@ -116,13 +116,13 @@ Can a neural network learn the mapping from physical jet parameters to observabl
 
 ### Motivation
 
-Tleco integrates the Fokker-Planck equation numerically. It is physically rigorous but computationally expensive across large parameter spaces. A neural surrogate mapping input parameters (μ, σ, Γ, ṁ, f_rec) to SED flux vectors would enable fast parameter space exploration, serve as a differentiable forward model for gradient-based inference, and be useful beyond this specific project.
+Tleco integrates the Fokker-Planck equation numerically. It is physically rigorous but computationally expensive across large parameter spaces. A neural surrogate mapping input parameters ($\mu, \sigma, \Gamma, \dot{m}, f_{\text{rec}}$) to SED flux vectors would enable fast parameter space exploration, serve as a differentiable forward model for gradient-based inference, and be useful beyond this specific project.
 
 This is neural emulation of physical simulators, an established approach in climate modeling, cosmological simulations, and plasma physics codes.
 
 ### Approach
 
-1. Generate training data by running Tleco over a Latin hypercube or Sobol sequence in (μ, σ, Γ, ṁ, f_rec)
+1. Generate training data by running Tleco over a Latin hypercube or Sobol sequence in ($\mu, \sigma, \Gamma, \dot{m}, f_{\text{rec}}$)
 2. Train a feedforward network or normalizing flow to predict SED flux vectors at fixed frequency bins
 3. Validate against held-out Tleco runs; characterize failure modes and coverage gaps
 4. Integrate the emulator as a forward model in a Bayesian inference loop (MCMC or nested sampling)
@@ -134,7 +134,7 @@ PyTorch · NumPyro or PyMC · MLflow or Weights and Biases · Tleco
 
 ### Data Acquisition
 
-No external downloads required. Training data is generated by running Tleco over the parameter grid. Grid bounds are set from the 2021 paper (μ: 50–80, σ: 0.1–1.5, Γ: 5–30, ṁ: 0.01–0.5).
+No external downloads required. Training data is generated by running Tleco over the parameter grid. Grid bounds are set from the 2021 paper ($\mu \in [50, 80], \sigma \in [0.1, 1.5], \Gamma \in [5, 30], \dot{m} \in [0.01, 0.5]$).
 
 ---
 
