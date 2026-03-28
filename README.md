@@ -1,8 +1,8 @@
 # Scientific ML Projects
 
-Applying machine learning to astrophysical problems where physics domain knowledge drives the modeling decisions. These are not benchmark exercises: each project addresses an open scientific question with public observational data, a physically motivated feature set, and results that are interpretable against a known theoretical framework.
+Applying machine learning to astrophysical problems where physics domain knowledge drives the modeling decisions. These are not benchmark exercises: each project addresses an open scientific question with public observational data, a physically motivated feature set, and results that are interpretable against a known theoretical framework from past projects.
 
-The connecting thread across all three projects is [Tleco](https://github.com/altjerue/tleco), an in-house Fokker-Planck solver for blazar emission modeling. Tleco generates physically labeled synthetic SEDs and light curves across a grid of jet parameters, producing training data that no off-the-shelf dataset can replicate. That is the differentiator.
+The connecting thread across all three projects is [Tleco](https://github.com/altjerue/tleco), a Fokker-Planck solver for relativistic outflow modeling. Tleco generates physically labeled synthetic SEDs and light curves across a grid of jet parameters, producing training data that no off-the-shelf dataset can replicate.
 
 ---
 
@@ -26,17 +26,19 @@ Projects are sequential. Each depends on results from the previous one.
 
 ### Scientific Questions
 
-**Primary:** Given multi-wavelength observational features from the 4LAC-DR3 catalog, can a ML model recover the constraints on jet baryon loading ($50 ≤ \mu ≤ 80$) derived from forward simulation in the 2021 paper? Agreement is independent validation of that result. Disagreement is also scientifically informative.
+**Primary:** Given multi-wavelength observational features from the 4LAC-DR3 catalog, can a ML model recover the constraints on jet baryon loading ($50 \leq \mu \leq 80$) derived from forward simulation in the 2021 paper? Agreement is independent validation of that result. Disagreement is also scientifically informative.
 
-**Secondary (sets up the primary):** Is there a continuous blazar sequence, or are BL Lacs and FSRQs genuinely distinct populations? Can unsupervised clustering on observables recover known subclasses or reveal intermediate objects (BCU)?
+**Secondary:** Is there a continuous blazar sequence, or are BL Lacs and FSRQs genuinely distinct populations? Can unsupervised clustering on observables recover known subclasses or reveal intermediate objects (BCU)?
 
 ### Two-Part Analysis Structure
 
 The project runs on two samples with different feature sets. They are not the same analysis at different scales.
 
-**Part 1 — full catalog (3,407 sources):** Catalog-native features only, no kinematics. The small viewing-angle approximation (Doppler boosting selection enforces $\theta < 1 / \Gamma$ at the population level) justifies using SED features as implicit kinematic proxies. Methods: PCA, UMAP, GMM, HDBSCAN.
+**Part 1: full catalog (3,407 sources)** 
+Catalog-native features only, no kinematics. The small viewing-angle approximation (Doppler boosting selection enforces $\theta < 1 / \Gamma$ at the population level) justifies using SED features as implicit kinematic proxies. Methods: PCA, UMAP, GMM, HDBSCAN.
 
-**Part 2 — MOJAVE cross-matched subsample (334 sources):** Adds $\beta_{\text{app}}$ and $\Gamma_{\text{min}} = \sqrt{1 + \beta_{\text{app}}^2}$ from VLBI monitoring. The viewing angle affects the observed inverse Compton component independently of $\Gamma_{\text{bulk}}$ (Rueda-Becerril 2014), so both features must enter the model. This subsample is radio-bright and biased toward FSRQs and LSP sources — results are not directly comparable to Part 1 without correcting for MOJAVE selection.
+**Part 2: MOJAVE cross-matched subsample (334 sources)**
+Adds $\beta_{\text{app}}$ and $\Gamma_{\text{min}} = \sqrt{1 + \beta_{\text{app}}^2}$ from VLBI monitoring. The viewing angle affects the observed inverse Compton component independently of $\Gamma_{\text{bulk}}$ (Rueda-Becerril 2014), so both features must enter the model. This subsample is radio-bright and biased toward FSRQs and LSP sources — results are not directly comparable to Part 1 without correcting for MOJAVE selection.
 
 ### Features
 
@@ -46,32 +48,11 @@ The project runs on two samples with different feature sets. They are not the sa
 | `lp_alpha`, `lp_beta` | `LP_Index`, `LP_beta` (native) | Log-parabola shape |
 | `log_nu_syn` | $\log_{10}$(`nu_syn`) | Synchrotron peak frequency; 0-sentinel treated as NaN (777 sources) |
 | `log_nuFnu_syn` | $\log_{10}$(`nuFnu_syn`) | Synchrotron peak flux |
-| `log_compton_dom` | $\log_{10}$(`HE_nuFnuPeak` × 1.602e-6 / `nuFnu_syn`) | $\text{MeV cm}^{-2}\text{ s}^{-1} \rightarrow \text{erg cm}^{-2}\text{ s}^{-1}$ conversion required |
+| `log_compton_dom` | $\log_{10}$(`HE_nuFnuPeak` $\times 1.602 \times 10^{-6} /$ `nuFnu_syn`) | $\text{MeV cm}^{-2}\text{ s}^{-1} \rightarrow \text{erg cm}^{-2}\text{ s}^{-1}$ conversion required |
 | `log_gamma_lum` | $\log_{10}$($4 \pi d_L^2 \times$ `Energy_Flux100`) | $d_L$ from flat $\Lambda\text{CDM}\; (H_{0} = 70, \Omega_m = 0.3)$; `redshift`=0 treated as NaN |
 | `var_index` | `Variability_Index` (native) | |
-| `beta_app` | `betaMax` from MOJAVE-XVII | Part 2 only; 71 sources have `betaMax`=0 (no detected superluminal motion) |
+| `beta_app` | `betaMax` from MOJAVE-XVII | Part 2 only; 71 sources have `betaMax` = 0 (no detected superluminal motion) |
 | `gamma_min` | $\sqrt{1 + \beta_{\text{app}}^2}$ | Part 2 only; conservative Γ_bulk lower bound |
-
-### Missingness Summary
-
-| Feature | Part 1 (N=3,407) | Part 2 (N=334) |
-|---------|-----------------|----------------|
-| `redshift` | 47.0% | 9.9% |
-| `log_nu_syn` | 22.8% | 2.1% |
-| `log_compton_dom` | 34.0% | 6.6% |
-| `log_gamma_lum` | 47.0% | 9.9% |
-| `frac_var` | 25.7% | 4.2% |
-
-Part 2 has lower missingness because MOJAVE selects bright radio sources with better multiwavelength coverage. This is further evidence of selection bias, not better data quality in the sample.
-
-### Methods
-
-- Dimensionality reduction: PCA, UMAP
-- Clustering: Gaussian Mixture Models (k=2–5, BIC/AIC selection), HDBSCAN on UMAP embedding
-- Regression (μ recovery): Random Forest (baseline), Gaussian Process Regression (preferred at this sample size), XGBoost
-- Uncertainty quantification: Bayesian approaches, conformal prediction, bootstrap ensembles
-
-Classical ML is appropriate here. The dataset is at most a few thousand points. Deep learning is underpowered at this scale and harder to interpret — interpretability is required to make a scientific claim.
 
 ### Data Acquisition
 
@@ -100,10 +81,6 @@ https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/255/30
 ```
 File needed: save as `VizieR-MOJAVE-XVII.fit`
 
-**Derived parquet files** (generated by the notebook, no download needed):
-- `data/part1_4lac_dr3.parquet` — 3,407 sources, 16 features
-- `data/part2_4lac_mojave.parquet` — 334 sources, 19 features (adds β_app, e_β_app, γ_min)
-
 ---
 
 ## Project 2: Tleco Neural Emulator
@@ -120,22 +97,6 @@ Tleco integrates the Fokker-Planck equation numerically. It is physically rigoro
 
 This is neural emulation of physical simulators, an established approach in climate modeling, cosmological simulations, and plasma physics codes.
 
-### Approach
-
-1. Generate training data by running Tleco over a Latin hypercube or Sobol sequence in ($\mu, \sigma, \Gamma, \dot{m}, f_{\text{rec}}$)
-2. Train a feedforward network or normalizing flow to predict SED flux vectors at fixed frequency bins
-3. Validate against held-out Tleco runs; characterize failure modes and coverage gaps
-4. Integrate the emulator as a forward model in a Bayesian inference loop (MCMC or nested sampling)
-5. Fit observed SEDs from 4LAC-DR3; compare recovered parameters to the 2021 results
-
-### Tools
-
-PyTorch · NumPyro or PyMC · MLflow or Weights and Biases · Tleco
-
-### Data Acquisition
-
-No external downloads required. Training data is generated by running Tleco over the parameter grid. Grid bounds are set from the 2021 paper ($\mu \in [50, 80], \sigma \in [0.1, 1.5], \Gamma \in [5, 30], \dot{m} \in [0.01, 0.5]$).
-
 ---
 
 ## Project 3: Blazar Light Curve Forecasting
@@ -150,26 +111,14 @@ Can a general-purpose time series foundation model, fine-tuned with Tleco-genera
 
 Tleco integrates the Fokker-Planck equation forward in time. The particle energy distribution evolves at each time step, and the sequence of spectral snapshots is the light curve. Synthetic light curves with physical parameter labels are a direct output of Tleco across the same parameter grid used in Project 2. No competing time series ML paper on blazar variability has labeled synthetic training data from a first-principles physics code.
 
-### Phase 3.1 — Baseline Forecasting
+---
 
-Given N days of gamma-ray flux history, predict the next M days. Baselines: ARIMA, Prophet. Models: LSTM, Temporal Convolutional Network. Tleco synthetic curves used for data augmentation where observed coverage is sparse. Source selection guided by the 4LAC-DR3 variability index.
+## References
 
-**Tools:** PyTorch · statsmodels · Fermi-LAT data server
-
-### Phase 3.2 — Foundation Model Fine-Tuning
-
-Zero-shot evaluation of a pre-trained time series foundation model (Chronos, TimesFM, or Moirai) on blazar light curves, followed by fine-tuning using Tleco-simulated curves for domain adaptation. Probe the learned latent representations: do sources cluster by physical class? Do latent dimensions correlate with parameters recovered in Project 1?
-
-**Tools:** HuggingFace Transformers · PyTorch · Fermi-LAT data server · Tleco
-
-### Data Acquisition
-
-**Fermi-LAT light curves** (observed data):
-
-Download from the Fermi-LAT Light Curve Repository:
-```
-https://fermi.gsfc.nasa.gov/ssc/data/access/lat/LightCurveRepository/
-```
-Select sources by 4LAC-DR3 name; choose weekly or monthly binning. The repository provides per-source ASCII tables with flux, flux uncertainty, and upper limits.
-
-**Synthetic light curves:** Generated by Tleco (no external download).
+Ajello et al. 2022 ApJS 263 24
+Davis, Rueda-Becerril & Giannios 2022 MNRAS 513 5766
+Davis, Rueda-Becerril & Giannios 2024 ApJ 976 182
+Lister et al. 2021 ApJS 255 30
+Rueda-Becerril, Harrison & Giannios 2021 MNRAS 501 4092
+Rueda-Becerril, Mimica & Aloy 2017 MNRAS 468 1169
+Rueda-Becerril, Mimica & Aloy 2014 MNRAS 438 1856
