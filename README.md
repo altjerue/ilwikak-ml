@@ -34,7 +34,7 @@ Projects are sequential. Each depends on results from the previous one.
 
 The project runs on two samples with different feature sets. They are not the same analysis at different scales.
 
-**Part 1: full catalog (3,407 sources)** 
+**Part 1: full catalog (3,407 sources)**
 Catalog-native features only, no kinematics. The small viewing-angle approximation (Doppler boosting selection enforces $\theta < 1 / \Gamma$ at the population level) justifies using SED features as implicit kinematic proxies. Methods: PCA, UMAP, GMM, HDBSCAN.
 
 **Part 2: MOJAVE cross-matched subsample (334 sources)**
