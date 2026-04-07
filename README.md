@@ -115,10 +115,10 @@ Tleco integrates the Fokker-Planck equation forward in time. The particle energy
 
 ## References
 
-Ajello et al. 2022 ApJS 263 24
-Davis, Rueda-Becerril & Giannios 2022 MNRAS 513 5766
-Davis, Rueda-Becerril & Giannios 2024 ApJ 976 182
-Lister et al. 2021 ApJS 255 30
-Rueda-Becerril, Harrison & Giannios 2021 MNRAS 501 4092
-Rueda-Becerril, Mimica & Aloy 2017 MNRAS 468 1169
-Rueda-Becerril, Mimica & Aloy 2014 MNRAS 438 1856
+- Ajello et al. 2022 ApJS 263 24
+- Davis, Rueda-Becerril & Giannios 2022 MNRAS 513 5766
+- Davis, Rueda-Becerril & Giannios 2024 ApJ 976 182
+- Lister et al. 2021 ApJS 255 30
+- Rueda-Becerril, Harrison & Giannios 2021 MNRAS 501 4092
+- Rueda-Becerril, Mimica & Aloy 2017 MNRAS 468 1169
+- Rueda-Becerril, Mimica & Aloy 2014 MNRAS 438 1856
