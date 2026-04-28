@@ -30,7 +30,7 @@ Projects are sequential. Each depends on results from the previous one.
 
 **Secondary:** Is there a continuous blazar sequence, or are BL Lacs and FSRQs genuinely distinct populations? Can unsupervised clustering on observables recover known subclasses or reveal intermediate objects (BCU)?
 
-### Two-Part Analysis Structure
+### Analysis
 
 The project runs on two samples with different feature sets. They are not the same analysis at different scales.
 
@@ -38,7 +38,7 @@ The project runs on two samples with different feature sets. They are not the sa
 Catalog-native features only, no kinematics. The small viewing-angle approximation (Doppler boosting selection enforces $\theta < 1 / \Gamma$ at the population level) justifies using SED features as implicit kinematic proxies. Methods: PCA, UMAP, GMM, HDBSCAN.
 
 **Part 2: MOJAVE cross-matched subsample (334 sources)**
-Adds $\beta_{\text{app}}$ and $\Gamma_{\text{min}} = \sqrt{1 + \beta_{\text{app}}^2}$ from VLBI monitoring. The viewing angle affects the observed inverse Compton component independently of $\Gamma_{\text{bulk}}$ (Rueda-Becerril 2014), so both features must enter the model. This subsample is radio-bright and biased toward FSRQs and LSP sources — results are not directly comparable to Part 1 without correcting for MOJAVE selection.
+Adds $\beta_{\text{app}}$ and $\Gamma_{\text{min}} = \sqrt{1 + \beta_{\text{app}}^2}$ from VLBI monitoring. The viewing angle affects the observed inverse Compton component independently of $\Gamma_{\text{bulk}}$ (Rueda-Becerril et al. 2014), so both features must enter the model. This subsample is radio-bright and biased toward FSRQs and LSP sources — results are not directly comparable to Part 1 without correcting for MOJAVE selection.
 
 ### Features
 
