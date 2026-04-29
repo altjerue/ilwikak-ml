@@ -10,7 +10,7 @@ The connecting thread across all three projects is [Tleco](https://github.com/al
 
 | # | Project | Method | Status |
 |---|---------|--------|--------|
-| 1 | [Blazar Population ML](#project-1-blazar-population-ml) | Classical ML (PCA, UMAP, GMM, HDBSCAN, GPR) | In progress |
+| 1 | [Blazar Population ML](#project-1-blazar-population-ml) | Classical ML (PCA, UMAP, GMM, HDBSCAN, GPR) | Part 1 complete / Part 2 in progress |
 | 2 | [Tleco Neural Emulator](#project-2-tleco-neural-emulator) | PyTorch feedforward / normalizing flow | Planned |
 | 3 | [Blazar Light Curve Forecasting](#project-3-blazar-light-curve-forecasting) | LSTM / TCN + foundation model fine-tuning | Planned |
 
@@ -38,7 +38,7 @@ The project runs on two samples with different feature sets. They are not the sa
 Catalog-native features only, no kinematics. The small viewing-angle approximation (Doppler boosting selection enforces $\theta < 1 / \Gamma$ at the population level) justifies using SED features as implicit kinematic proxies. Methods: PCA, UMAP, GMM, HDBSCAN.
 
 **Part 2: MOJAVE cross-matched subsample (334 sources)**
-Adds $\beta_{\text{app}}$ and $\Gamma_{\text{min}} = \sqrt{1 + \beta_{\text{app}}^2}$ from VLBI monitoring. The viewing angle affects the observed inverse Compton component independently of $\Gamma_{\text{bulk}}$ (Rueda-Becerril et al. 2014), so both features must enter the model. This subsample is radio-bright and biased toward FSRQs and LSP sources — results are not directly comparable to Part 1 without correcting for MOJAVE selection.
+Adds $\beta_{\text{app}}$ and $\Gamma_{\text{min}} = \sqrt{1 + \beta_{\text{app}}^2}$ from VLBI monitoring. The viewing angle affects the observed inverse Compton component independently of $\Gamma_{\text{bulk}}$ (Rueda-Becerril et al. 2014), so both features must enter the model. This subsample is radio-bright and biased toward FSRQs and LSP sources; results are not directly comparable to Part 1 without correcting for MOJAVE selection.
 
 ### Features
 
@@ -52,7 +52,24 @@ Adds $\beta_{\text{app}}$ and $\Gamma_{\text{min}} = \sqrt{1 + \beta_{\text{app}
 | `log_gamma_lum` | $\log_{10}$($4 \pi d_L^2 \times$ `Energy_Flux100`) | $d_L$ from flat $\Lambda\text{CDM}\; (H_{0} = 70, \Omega_m = 0.3)$; `redshift`=0 treated as NaN |
 | `var_index` | `Variability_Index` (native) | |
 | `beta_app` | `betaMax` from MOJAVE-XVII | Part 2 only; 71 sources have `betaMax` = 0 (no detected superluminal motion) |
-| `gamma_min` | $\sqrt{1 + \beta_{\text{app}}^2}$ | Part 2 only; conservative Γ_bulk lower bound |
+| `gamma_min` | $\sqrt{1 + \beta_{\text{app}}^2}$ | Part 2 only; conservative $\Gamma_\text{bulk}$ lower bound |
+
+### Missingness Summary
+
+| Feature | Part 1 (N=3,407) | Part 2 (N=334) |
+|---------|-----------------|----------------|
+| `redshift` | 47.0% | 9.9% |
+| `log_nu_syn` | 22.8% | 2.1% |
+| `log_compton_dom` | 34.0% | 6.6% |
+| `log_gamma_lum` | 47.0% | 9.9% |
+| `frac_var` | 25.7% | 4.2% |
+
+Part 2 has lower missingness because MOJAVE selects bright radio sources with better multiwavelength coverage. This is further evidence of selection bias, not better data quality in the sample.
+
+### Methods
+
+- Dimensionality reduction: PCA, UMAP
+- Clustering: Gaussian Mixture Models (k=2-5, BIC/AIC selection), HDBSCAN on UMAP embedding
 
 ### Data Acquisition
 
@@ -65,8 +82,8 @@ Download from the Fermi Science Support Center:
 https://fermi.gsfc.nasa.gov/ssc/data/access/lat/4LACDR3/
 ```
 Files needed:
-- `table-4LAC-DR3-h.fits` — high Galactic latitude sources, $|b| > 10^{\circ}$, 3,407 sources (primary catalog)
-- `table-4LAC-DR3-l.fits` — low Galactic latitude sources (excluded from main analysis, kept for reference)
+- `table-4LAC-DR3-h.fits`: high Galactic latitude sources, $|b| > 10^{\circ}$, 3,407 sources (primary catalog)
+- `table-4LAC-DR3-l.fits`: low Galactic latitude sources (excluded from main analysis, kept for reference)
 
 Alternatively, the VizieR mirror (catalog J/ApJS/263/24) provides the same tables:
 ```
@@ -105,7 +122,7 @@ This is neural emulation of physical simulators, an established approach in clim
 
 ### Scientific Question
 
-Can a general-purpose time series foundation model, fine-tuned with Tleco-generated synthetic light curves, forecast blazar gamma-ray flares? Where does it succeed, where does it fail, and what does the latent structure it learns correspond to physically?
+Can a general-purpose time series foundation model, fine-tuned with Tleco-generated synthetic light curves, forecast blazar $\gamma$-ray flares? Where does it succeed, where does it fail, and what does the latent structure it learns correspond to physically?
 
 ### Key Asset
 
@@ -118,6 +135,12 @@ Tleco integrates the Fokker-Planck equation forward in time. The particle energy
 - Ajello et al. 2022 ApJS 263 24
 - Davis, Rueda-Becerril & Giannios 2022 MNRAS 513 5766
 - Davis, Rueda-Becerril & Giannios 2024 ApJ 976 182
+- Donato et al. 2001 A&A 375 739
+- Finke 2013 ApJ 764 144
+- Fossati et al. 1998 MNRAS 299 433
+- Ghisellini et al. 2011 MNRAS 414 2674
+- Komissarov et al. 2007 MNRAS 380 51
+- Lister et al. 2019 ApJ 874 43
 - Lister et al. 2021 ApJS 255 30
 - Rueda-Becerril, Harrison & Giannios 2021 MNRAS 501 4092
 - Rueda-Becerril, Mimica & Aloy 2017 MNRAS 468 1169
