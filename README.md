@@ -40,7 +40,7 @@ Catalog-native features only, no kinematics. The small viewing-angle approximati
 **Part 2: MOJAVE cross-matched subsample (334 sources) — Gaussian Process Regression on $\Gamma_{\text{min}}$**
 Adds $\beta_{\text{app}}$ and $\Gamma_{\text{min}} = \sqrt{1 + \beta_{\text{app}}^2}$ from VLBI monitoring. The connection between SED morphology and jet kinematics was established in individual source modeling (Rueda-Becerril, Mimica & Aloy 2014). Part 2 tests whether that connection persists at the population level in a fully data-driven setting, using Gaussian Process Regression on $\Gamma_{\text{min}}$ as a kinematic proxy. 300 of 334 sources have complete-case PCA features from Part 1 and appear in the UMAP embedding; the remaining 34 were dropped by the Part 1 missingness filter. The MOJAVE subsample is radio-bright and biased toward FSRQs and LSP sources; predictions for high-$\log \nu_{\text{syn}}$ sources must be treated as extrapolations beyond the training distribution.
 
-**Part 3: Tleco direct run — $\mu$ pseudo-labels (planned)**
+**Part 3: Tleco direct run — $\mu$ pseudo-labels (WIP)**
 Runs Tleco directly over a grid of $(\mu, \sigma, \Gamma, \dot{m})$ to generate per-source $\mu$ estimates as regression labels. Train on synthetic Tleco data, evaluate on the MOJAVE subsample. This is Option B of the regression strategy and addresses whether the population-level baryon loading signal is recoverable from observational features without a physical model assumption. Note: the Tleco surrogate built in Project 2 is a separate downstream application; Part 3 uses Tleco directly.
 
 ### Features
@@ -107,11 +107,11 @@ File needed: save as `VizieR-MOJAVE-XVII.fit`
 - `data/part1_4lac_dr3.parquet`: 3,407 sources, 16 features (full catalog, pre-filtering)
 - `data/pca_catalog.parquet`: 2,207 sources, 26 features (complete-case subset with PCA/UMAP embeddings and cluster assignments from Part 1)
 - `data/bcu_classification.parquet`: 621 BCU sources with Gaussian Mixture Model posterior probabilities
-- `data/part2_4lac_mojave.parquet`: 334 sources, 19 features (adds $\beta_\text{app}$, $e\_\beta_\text{app}$, $\Gamma_\text{min}$)
+- `data/part2_4lac_mojave.parquet`: 334 sources, 19 features (adds `beta_app`, `e_beta`, `gamma_min`)
 
 ---
 
-## Project 2: Tleco Neural Emulator
+## Project 2: Tleco Neural Emulator (planned)
 
 **Status:** Not started. Begins after Project 1 is in a presentable state.
 
@@ -127,7 +127,7 @@ This is neural emulation of physical simulators, an established approach in clim
 
 ---
 
-## Project 3: Blazar Light Curve Forecasting
+## Project 3: Blazar Light Curve Forecasting (planned)
 
 **Status:** Not started. Begins after Project 2 is in a presentable state. Runs in two phases.
 
