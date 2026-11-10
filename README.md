@@ -11,7 +11,7 @@ The connecting thread across all three projects is [Tleco](https://github.com/al
 | # | Project | Method | Status |
 |---|---------|--------|--------|
 | 1 | [Blazar Population ML](#project-1-blazar-population-ml) | Classical ML (Principal Component Analysis, UMAP, Gaussian Mixture Models, HDBSCAN, Gaussian Process Regression) | Part 1 complete / Part 2 in progress / Part 3 planned |
-| 2 | [Tleco Neural Emulator](#project-2-tleco-neural-emulator) | PyTorch feedforward / normalizing flow | Planned |
+| 2 | [Tleco Neural Emulator](#project-2-tleco-neural-emulator) | PyTorch MLP surrogate of the Fokker-Planck solver (stage 1); full SED emulator (stage 2) | Stage 1 complete / Stage 2 planned |
 | 3 | [Blazar Light Curve Forecasting](#project-3-blazar-light-curve-forecasting) | LSTM / TCN + foundation model fine-tuning | Planned |
 
 Projects are sequential. Each depends on results from the previous one.
@@ -111,9 +111,11 @@ File needed: save as `VizieR-MOJAVE-XVII.fit`
 
 ---
 
-## Project 2: Tleco Neural Emulator (planned)
+## Project 2: Tleco Neural Emulator
 
-**Status:** Not started. Begins after Project 1 is in a presentable state.
+**Notebook:** [`tleco_fp_surrogate.ipynb`](./tleco_fp_surrogate.ipynb) (Stage 1, Fokker-Planck solver surrogate) · **Code:** [`fp_surrogate/`](./fp_surrogate) · **Tests:** [`tests/`](./tests)
+
+**Status:** Stage 1 complete (surrogate of the Fokker-Planck solver). Stage 2 (full parameters → SED emulator and Bayesian inference) planned.
 
 ### Scientific Question
 
@@ -121,9 +123,34 @@ Can a neural network learn the mapping from physical jet parameters to observabl
 
 ### Motivation
 
-Tleco integrates the Fokker-Planck equation numerically. It is physically rigorous but computationally expensive across large parameter spaces. A neural surrogate mapping input parameters ($\mu, \sigma, \Gamma, \dot{m}, f_{\text{rec}}$) to SED flux vectors would enable fast parameter space exploration, serve as a differentiable forward model for gradient-based inference, and be useful beyond this specific project.
+Tleco integrates the Fokker-Planck equation numerically. It is physically rigorous but computationally expensive across large parameter spaces. A neural surrogate mapping jet parameters to SED flux vectors would enable fast parameter space exploration, serve as a differentiable forward model for gradient-based inference, and be useful beyond this specific project.
 
 This is neural emulation of physical simulators, an established approach in climate modeling, cosmological simulations, and plasma physics codes.
+
+### Staged approach
+
+The full emulator chains three pieces: a jet model driver (RHG21's `blazMag`), the Fokker-Planck solver for the electron energy distribution, and the radiation kernels. In the RHG21 driver the baryon loading is derived, $\mu = \Gamma(1+\sigma)$, so the stage 2 inputs are $(\Gamma, \sigma, f_{\text{rec}}, L_{\text{jet}}, \dot m)$, with $\dot m$ setting the broad-line-region photon field.
+
+**Stage 1 (this notebook)** emulates the numerical core alone: the parametric solution map $(p, \gamma_1, \gamma_2, \gamma_c, D_0, q, t) \mapsto n(\gamma, t)$ of the time-dependent Fokker-Planck equation with power-law injection, $\gamma^2$ radiative cooling, escape, and turbulent (stochastic) acceleration.
+
+- **Solver mapping, verified:** stochastic acceleration enters Tleco's Chang–Cooper scheme as $D = 2D_{pp}$ and $\dot\gamma = \dot\gamma_{\text{cool}} - (2+q)D_0\gamma^{q-1}$. This is checked against three analytic solutions: the acceleration–cooling steady state, Park & Petrosian (1995) eq. 59, and the cooling + escape steady state.
+- **Data:** 65,536 training-pool and 2,048 test trajectories (scrambled Sobol, 32 snapshots each). The solver runs on a 4× refined grid ($\sim$0.02 dex truncation error) and is subsampled to 128 output bins.
+- **Model:** a multilayer perceptron with a PCA output head, trained with a relevance-weighted loss in $\log_{10} n$ and tracked in MLflow.
+- **Validation:** held-out error statistics, physics diagnostics (particle number, spectral indices, energy-peak position), failure-mode maps, learning curve, and speed.
+
+**Findings:** see the notebook's conclusions. Headline: about 0.02 dex median error on held-out trajectories, with roughly a 5,000× speed-up per trajectory. Errors concentrate at the hard injection edges at early times. In addition, Tleco's cooling-only fallback branch (`fp_findif_cool`) uses the opposite $\dot\gamma$ sign convention to `fp_findif_difu`, and particles leak through the $\gamma = 1$ boundary when injection starts near $\gamma_1 \approx 1$.
+
+**Reproduce:**
+
+```bash
+python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt
+.venv/bin/pytest
+.venv/bin/python -m fp_surrogate.generate --split test      --out data/fp_surrogate/test.h5
+.venv/bin/python -m fp_surrogate.generate --split train     --out data/fp_surrogate/train.h5
+.venv/bin/python -m fp_surrogate.generate --split train_ext --out data/fp_surrogate/train_ext.h5
+.venv/bin/python -m fp_surrogate.train --head pca --tag pca_big --train-file data/fp_surrogate/train.h5 data/fp_surrogate/train_ext.h5
+.venv/bin/python -m fp_surrogate.evaluate --tag pca_big
+```
 
 ---
 
@@ -144,6 +171,7 @@ Tleco integrates the Fokker-Planck equation forward in time. The particle energy
 ## References
 
 - Ajello et al. 2022 ApJS 263 24
+- Chang & Cooper 1970 J. Comput. Phys. 6 1
 - Davis, Rueda-Becerril & Giannios 2022 MNRAS 513 5766
 - Davis, Rueda-Becerril & Giannios 2024 ApJ 976 182
 - Donato et al. 2001 A&A 375 739
@@ -153,6 +181,8 @@ Tleco integrates the Fokker-Planck equation forward in time. The particle energy
 - Komissarov et al. 2007 MNRAS 380 51
 - Lister et al. 2019 ApJ 874 43
 - Lister et al. 2021 ApJS 255 30
+- Park & Petrosian 1995 ApJ 446 699
 - Rueda-Becerril, Harrison & Giannios 2021 MNRAS 501 4092
 - Rueda-Becerril, Mimica & Aloy 2017 MNRAS 468 1169
 - Rueda-Becerril, Mimica & Aloy 2014 MNRAS 438 1856
+- Spurio Mancini et al. 2022 MNRAS 511 1771
