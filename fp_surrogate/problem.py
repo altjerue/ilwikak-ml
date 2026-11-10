@@ -46,15 +46,19 @@ def injection(theta, g=cfg.GAMMA) -> np.ndarray:
     return q / number(q, g)
 
 
+def transport(g, b: float, d0: float, q: float):
+    """Solver arrays (gdot, D) for cooling b γ^2 plus diffusion D_pp = d0 γ^q."""
+    d_pp = d0 * g**q
+    gdot = b * g**2 - (2.0 + q) * d0 * g ** (q - 1.0)
+    return gdot, 2.0 * d_pp
+
+
 def coefficients(theta, g=cfg.GAMMA):
     """Return (Q, gdot, D) arrays for ``fp_findif_difu`` (t_esc = 1)."""
     th = unpack(theta)
     b = 10 ** (-th["log_gc"])  # γdot_cool = b γ^2 with b = 1 / (γc t_esc)
-    d0 = 10 ** th["log_D0"]
-    qd = th["q"]
-    d_pp = d0 * g**qd
-    gdot = b * g**2 - (2.0 + qd) * d0 * g ** (qd - 1.0)
-    return injection(theta, g), gdot, 2.0 * d_pp
+    gdot, D = transport(g, b, 10 ** th["log_D0"], th["q"])
+    return injection(theta, g), gdot, D
 
 
 def number(n, g=cfg.GAMMA) -> float | np.ndarray:
