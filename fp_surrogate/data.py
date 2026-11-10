@@ -93,7 +93,7 @@ class PCABasis:
         Y = Y.astype(np.float64)
         mean = Y.mean(0)
         _, s, vt = np.linalg.svd(Y - mean, full_matrices=False)
-        scale = s / np.sqrt(len(Y))
+        scale = np.maximum(s / np.sqrt(len(Y)), 1e-6 * s[0] / np.sqrt(len(Y)))
         if k is None:
             rel = relevant_mask(Y)
             k = len(s)
