@@ -3,6 +3,7 @@
 Usage
 -----
     python -m fp_surrogate.generate --split train --out data/fp_surrogate/train.h5
+    python -m fp_surrogate.generate --split train_ext --out data/fp_surrogate/train_ext.h5
     python -m fp_surrogate.generate --split test  --out data/fp_surrogate/test.h5
     python -m fp_surrogate.generate --n 64 --out data/fp_surrogate/smoke.h5
 
@@ -127,13 +128,16 @@ def generate(out: Path, u: np.ndarray, workers: int, flush_every: int = 256):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--split", choices=["train", "test"], default="train")
+    ap.add_argument("--split", choices=["train", "train_ext", "test"], default="train")
     ap.add_argument("--n", type=int, default=None, help="smoke run: first n points of the train design")
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--workers", type=int, default=16)
     a = ap.parse_args(argv)
     if a.split == "test":
         u = sobol_design(cfg.N_TEST_LOG2, cfg.SEED_TEST)
+    elif a.split == "train_ext":
+        # Scrambled Sobol is extensible: the first 2^14 points equal train.h5's design
+        u = sobol_design(cfg.N_TRAIN_EXT_LOG2, cfg.SEED_TRAIN_POOL)[2**cfg.N_TRAIN_POOL_LOG2 :]
     else:
         u = sobol_design(cfg.N_TRAIN_POOL_LOG2, cfg.SEED_TRAIN_POOL)
     if a.n is not None:

@@ -170,7 +170,7 @@ def train(args) -> dict:
 
 def parse(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--train-file", type=Path, default=cfg.DATA_DIR / "train.h5")
+    ap.add_argument("--train-file", type=Path, nargs="+", default=[cfg.DATA_DIR / "train.h5"])
     ap.add_argument("--head", choices=["pca", "direct"], default="pca")
     ap.add_argument("--tag", default="pca_main")
     ap.add_argument("--n-train-traj", type=int, default=None)

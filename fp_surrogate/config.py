@@ -78,7 +78,8 @@ class SolverConfig:
 DEFAULT_SOLVER = SolverConfig()
 
 # Sobol design sizes and seeds
-N_TRAIN_POOL_LOG2 = 14  # train + validation trajectories
+N_TRAIN_POOL_LOG2 = 14  # train + validation trajectories (train.h5)
+N_TRAIN_EXT_LOG2 = 16  # extension: Sobol points 2^14 .. 2^16 of the same sequence (train_ext.h5)
 N_TEST_LOG2 = 11  # independent test trajectories
 SEED_TRAIN_POOL = 20261110
 SEED_TEST = 777

@@ -30,7 +30,12 @@ class Trajectories:
         return Trajectories(self.u[idx], self.theta[idx], self.log_n[idx], self.N_tot[idx], self.t_out, self.gamma)
 
 
-def load(path: Path | str, ok_only: bool = True) -> Trajectories:
+def load(path, ok_only: bool = True) -> Trajectories:
+    """Load one HDF5 file, or concatenate several (same grids) given a list."""
+    if isinstance(path, (list, tuple)):
+        parts = [load(p, ok_only) for p in path]
+        cat = lambda name: np.concatenate([getattr(t, name) for t in parts])  # noqa: E731
+        return Trajectories(cat("u"), cat("theta"), cat("log_n"), cat("N_tot"), parts[0].t_out, parts[0].gamma)
     with h5py.File(path, "r") as f:
         status = f["status"][:]
         keep = status == 0 if ok_only else np.ones(len(status), bool)
