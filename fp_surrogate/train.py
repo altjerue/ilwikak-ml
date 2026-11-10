@@ -109,7 +109,8 @@ def train(args) -> dict:
 
     mlflow.set_tracking_uri(f"sqlite:///{cfg.REPO_ROOT / 'mlflow.db'}")
     mlflow.set_experiment("fp_surrogate")
-    params = {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()}
+    params = {k: (",".join(map(str, v)) if isinstance(v, list) else str(v) if isinstance(v, Path) else v)
+              for k, v in vars(args).items()}
     params.update(n_train_traj_used=len(tr_idx), n_params=sum(p.numel() for p in model.parameters()),
                   device=device, n_pca=getattr(model.net[-1], "out_features", None) if args.head == "pca" else None)
 
