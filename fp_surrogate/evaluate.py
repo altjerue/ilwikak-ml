@@ -112,8 +112,9 @@ def evaluate(tag: str, test_file=cfg.DATA_DIR / "test.h5", out_dir=EVAL_DIR, ben
 
     # Energy peak position
     dpk = energy_peak(pred) - energy_peak(te.log_n)
-    summary["energy_peak_abs_dex_median"] = float(np.median(np.abs(dpk)))
-    summary["energy_peak_abs_dex_p95"] = float(np.percentile(np.abs(dpk), 95))
+    bw = np.log10(te.gamma[1] / te.gamma[0])  # one output bin in dex
+    summary["energy_peak_frac_same_bin"] = float(np.mean(np.abs(dpk) < 0.5 * bw))
+    summary["energy_peak_frac_within_1bin"] = float(np.mean(np.abs(dpk) < 1.5 * bw))
 
     idx = index_check(pred, te)
     if len(idx):
