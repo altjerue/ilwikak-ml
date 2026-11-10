@@ -36,6 +36,20 @@ def pick_device(name: str) -> str:
     return "mps" if torch.backends.mps.is_available() else "cpu"
 
 
+def loss_weights(Y: torch.Tensor, mode: str, mask_dex: float, w_out: float) -> torch.Tensor | None:
+    """Per-bin loss weights. ``masked``: 1 within ``mask_dex`` of each snapshot peak, ``w_out`` elsewhere."""
+    if mode == "all":
+        return None
+    near = Y >= Y.max(dim=-1, keepdim=True).values - mask_dex
+    return torch.where(near, 1.0, w_out)
+
+
+def weighted_mse(pred, Y, w):
+    if w is None:
+        return torch.mean((pred - Y) ** 2)
+    return torch.sum(w * (pred - Y) ** 2) / torch.sum(w)
+
+
 @torch.no_grad()
 def batched_predict(model, X, device, bs=65536):
     out = [model(torch.from_numpy(X[i : i + bs]).to(device)).cpu() for i in range(0, len(X), bs)]
@@ -111,7 +125,8 @@ def train(args) -> dict:
             run_loss = 0.0
             for i in range(steps_per_epoch):
                 b = perm[i * args.batch : (i + 1) * args.batch]
-                loss = torch.mean((model(Xtr_t[b]) - Ytr_t[b]) ** 2)
+                yb = Ytr_t[b]
+                loss = weighted_mse(model(Xtr_t[b]), yb, loss_weights(yb, args.loss, args.mask_dex, args.w_out))
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 opt.step()
@@ -119,7 +134,8 @@ def train(args) -> dict:
                 run_loss += loss.item()
             model.eval()
             pva = batched_predict(model, Xva, device)
-            val_mse = float(np.mean((pva - Yva) ** 2))
+            Yva_t = torch.from_numpy(Yva)
+            val_mse = float(weighted_mse(torch.from_numpy(pva), Yva_t, loss_weights(Yva_t, args.loss, args.mask_dex, args.w_out)))
             m = {"train_mse": run_loss / steps_per_epoch, "val_mse": val_mse, "lr": sched.get_last_lr()[0]}
             if ep % args.eval_every == 0 or ep == args.epochs - 1:
                 m.update({f"val_{k}": v for k, v in error_summary(pva, Yva).items()})
@@ -159,6 +175,9 @@ def parse(argv=None):
     ap.add_argument("--tag", default="pca_main")
     ap.add_argument("--n-train-traj", type=int, default=None)
     ap.add_argument("--val-frac", type=float, default=0.1)
+    ap.add_argument("--loss", choices=["all", "masked"], default="masked")
+    ap.add_argument("--mask-dex", type=float, default=10.0)
+    ap.add_argument("--w-out", type=float, default=0.01)
     ap.add_argument("--n-pca", type=int, default=None)
     ap.add_argument("--pca-tol", type=float, default=0.005)
     ap.add_argument("--width", type=int, default=256)
