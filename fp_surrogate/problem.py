@@ -102,11 +102,22 @@ def evolve(n0, t, Q, gdot, D, g=cfg.GAMMA, t_esc=1.0, out_idx=None):
     return np.array(snaps)
 
 
-def solve_trajectory(theta, t_out=cfg.T_OUT, solver: cfg.SolverConfig = cfg.DEFAULT_SOLVER):
-    """Solve from n(γ, 0) = 0 with continuous injection; return n at ``t_out``."""
-    Q, gdot, D = coefficients(theta)
+def solve_trajectory(
+    theta,
+    t_out=cfg.T_OUT,
+    solver: cfg.SolverConfig = cfg.DEFAULT_SOLVER,
+    g_solver=cfg.GAMMA_SOLVER,
+    refine: int = cfg.GAMMA_REFINE,
+):
+    """Solve from n(γ, 0) = 0 with continuous injection; return n at ``t_out``.
+
+    The solver runs on ``g_solver`` and the result is subsampled to the
+    output grid (every ``refine``-th point), shape (len(t_out), N_GAMMA).
+    """
+    Q, gdot, D = coefficients(theta, g_solver)
     t, out_idx = solver_times(t_out, solver)
-    return evolve(np.zeros_like(cfg.GAMMA), t, Q, gdot, D, out_idx=out_idx)
+    n = evolve(np.zeros_like(g_solver), t, Q, gdot, D, g=g_solver, out_idx=out_idx)
+    return n[:, ::refine]
 
 
 def to_log(n, floor_dex: float = cfg.LOG_FLOOR_DEX) -> np.ndarray:

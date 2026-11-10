@@ -20,6 +20,14 @@ N_GAMMA = 128
 GAMMA_MIN, GAMMA_MAX = 1.0, 1e8
 GAMMA = np.logspace(np.log10(GAMMA_MIN), np.log10(GAMMA_MAX), N_GAMMA)
 
+# The reference solver runs on a finer grid that contains GAMMA exactly
+# (every GAMMA_REFINE-th point). Tleco's scheme is first order in Δγ, so a 4x
+# refinement cuts the truncation error vs. the continuum solution ~4x
+# (median ~0.08 dex -> ~0.02 dex on the cooling steady state).
+GAMMA_REFINE = 4
+N_GAMMA_SOLVER = GAMMA_REFINE * (N_GAMMA - 1) + 1
+GAMMA_SOLVER = np.logspace(np.log10(GAMMA_MIN), np.log10(GAMMA_MAX), N_GAMMA_SOLVER)
+
 # Output (snapshot) times, in units of t_esc
 N_TOUT = 32
 LOG_T_OUT_MIN, LOG_T_OUT_MAX = -3.0, 2.0
@@ -63,7 +71,7 @@ class SolverConfig:
     output time the grid starts at ``log_t_start`` with the same log spacing.
     """
 
-    substeps: int = 16
+    substeps: int = 64
     log_t_start: float = -6.0
 
 

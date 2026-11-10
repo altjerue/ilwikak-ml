@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-from scipy.integrate import cumulative_trapezoid
 from scipy.special import iv
 
 
@@ -73,13 +72,3 @@ def local_index(g, n, g_lo, g_hi):
         return np.nan
     return -np.polyfit(np.log10(g[m]), np.log10(n[m]), 1)[0]
 
-
-__all__ = [
-    "number_budget",
-    "cooling_escape_steady_state",
-    "acc_cool_steady_state",
-    "park_petrosian_eq59",
-    "local_index",
-    "cumulative_trapezoid",
-    "iv",
-]
