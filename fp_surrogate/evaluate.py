@@ -62,7 +62,8 @@ def index_check(pred, tr: Trajectories, t_index=-1, min_span_dex=0.5):
         g1 = 10 ** d["log_g1"]
         g2 = min(g1 * 10 ** d["log_g2_g1"], cfg.GAMMA2_CAP)
         gc = 10 ** d["log_gc"]
-        windows = [(0, 3 * g1, gc / 3, d["p"]), (1, max(3 * gc, 3 * g1), g2 / 10, d["p"] + 1)]
+        # Windows stay inside the injection range and away from the breaks
+        windows = [(0, 3 * g1, min(gc, g2) / 3, d["p"]), (1, 3 * max(gc, g1), g2 / 10, d["p"] + 1)]
         for which, lo, hi, expect in windows:
             if np.log10(hi / lo) < min_span_dex:
                 continue
