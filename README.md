@@ -138,7 +138,14 @@ The full emulator chains three pieces: a jet model driver (RHG21's `blazMag`), t
 - **Model:** a multilayer perceptron with a PCA output head, trained with a relevance-weighted loss in $\log_{10} n$ and tracked in MLflow.
 - **Validation:** held-out error statistics, physics diagnostics (particle number, spectral indices, energy-peak position), failure-mode maps, learning curve, and speed.
 
-**Findings:** see the notebook's conclusions. Headline: about 0.02 dex median error on held-out trajectories, with roughly a 5,000× speed-up per trajectory. Errors concentrate at the hard injection edges at early times. In addition, Tleco's cooling-only fallback branch (`fp_findif_cool`) uses the opposite $\dot\gamma$ sign convention to `fp_findif_difu`, and particles leak through the $\gamma = 1$ boundary when injection starts near $\gamma_1 \approx 1$.
+**Findings (held-out test set, 2,048 trajectories):**
+
+- **Accuracy:** 0.012 dex median and 0.098 dex 95th-percentile error on $\log_{10} n$ (bins within 8 dex of the peak). On smooth parts of the spectrum the median is 0.011 dex.
+- **Physics:** late-time cooling-break indices match Tleco to 0.010, and particle number matches Tleco to 2.1% (median).
+- **Speed:** about 5,700× faster than Tleco per trajectory; under 1 µs per snapshot when batched.
+- **Failure mode:** errors concentrate on the moving, near-discontinuous injection edges, where a one-bin shift costs several dex. These persist when neither diffusion nor cooling smooths them (weak $D_0$, high $\gamma_c$, narrow injection). The same edges make the solution manifold linearly incompressible: about 100 PCA modes are needed.
+- **Training lessons:** a relevance-weighted loss halves the errors relative to MSE on all bins. PCA and direct output heads perform the same. Wider networks overfit, and the learning curve ($\propto N^{-0.47}$ for the median) shows the problem is data-limited.
+- **Tleco issues found:** the cooling-only fallback (`fp_findif_cool`) uses the opposite $\dot\gamma$ sign convention to `fp_findif_difu`. Particles also leak through the $\gamma = 1$ boundary when injection starts near $\gamma_1 \approx 1$.
 
 **Reproduce:**
 
